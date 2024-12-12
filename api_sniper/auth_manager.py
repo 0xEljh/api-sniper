@@ -15,7 +15,10 @@ class AuthManager:
     def login(self, username: str, password: str) -> None:
         """Authenticate with username and password."""
         if not self.config.auth_endpoint:
-            raise AuthError("No auth endpoint configured")
+            raise AuthError(
+                "No auth endpoint configured. Please set auth_endpoint in SniperConfig "
+                "(e.g., config.auth_endpoint = '/auth/login')"
+            )
             
         try:
             response = self.session.post(
@@ -30,8 +33,13 @@ class AuthManager:
             self._token = auth_data.get("access_token") or auth_data.get("token")
             self._token_type = auth_data.get("token_type", "Bearer")
             
-            if self._token:
-                self.session.headers["Authorization"] = f"{self._token_type} {self._token}"
+            if not self._token:
+                raise AuthError(
+                    "No token found in response. Expected 'access_token' or 'token' "
+                    f"in response. Got: {list(auth_data.keys())}"
+                )
+            
+            self.session.headers["Authorization"] = f"{self._token_type} {self._token}"
         except Exception as e:
             raise AuthError(f"Login failed: {str(e)}")
     

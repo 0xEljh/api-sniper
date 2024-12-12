@@ -28,6 +28,7 @@ class RequestHandler:
     def __init__(self, config: SniperConfig, session: requests.Session):
         self.config = config
         self.session = session
+        self._patterns = {}  # Initialize patterns dictionary
     
     @retry_on_failure(max_attempts=3)
     def make_request(
